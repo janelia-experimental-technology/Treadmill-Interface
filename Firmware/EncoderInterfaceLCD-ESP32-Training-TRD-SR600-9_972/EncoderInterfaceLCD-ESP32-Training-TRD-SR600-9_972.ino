@@ -19,6 +19,9 @@
 //
 
 #include <Cmd.h>
+#include <EEPROM.h>
+
+#define EEPROM_SIZE 64 
 
 //#define SHOW_MICROS    // if defined, print micros() with each output
 #define SHOW_REVERSE   // if this is defined, show abs value of speed, else ignore reverse distance/speed
@@ -36,9 +39,12 @@
 #define MAXON 100
 
 
-#define VERSION "20260114R"
+#define VERSION "20260225R"
 
 // ===== VERSIONS ======
+
+// 20260225 sws
+// add ID command
 
 // 2026011 sws
 // - 9.972" diameter rat wheel 600 count encoder
@@ -285,7 +291,9 @@ void helpCmd(int arg_cnt, char **args)
    Serial.println(VERSION);
 #ifdef CYLINDER_6IN
    Serial.println("6.06in Cylindrical Treadmill 2048 cpr");
-#endif      
+#endif   
+   String id = EEPROM.readString(0);
+   Serial.println(id);   
 
 }  
 
@@ -307,6 +315,28 @@ void solCmd(int arg_cnt, char **args)
      }   
   }  
 }  
+
+//String id = String();
+
+// ================================
+// === I D  C M D  ===
+// ================================
+
+void idCmd(int arg_cnt, char **args)
+{
+  if ( arg_cnt > 1)
+  {  
+     String id = String(args[1]);
+     EEPROM.writeString(0, id);
+     EEPROM.commit();
+  }  
+  else
+  {
+     String id = EEPROM.readString(0);
+     Serial.println(id);
+  }
+}  
+
 
 
 void setup()
@@ -332,6 +362,9 @@ void setup()
 //  delay(100); 
 //}
 
+   EEPROM.begin(EEPROM_SIZE);
+
+   
   // turn on backlite
   pinMode(TFT_BACKLITE, OUTPUT);
   digitalWrite(TFT_BACKLITE, HIGH);
@@ -357,6 +390,9 @@ void setup()
   tft.print("9.972\" Cylinder");
   tft.setCursor(0,64);
   tft.print("600 cpr");
+  tft.setCursor(0, 96);
+  String id = EEPROM.readString(0);
+  tft.print(id);
   delay(2000);
 
   tft.fillScreen(ST77XX_BLACK);
@@ -382,6 +418,7 @@ void setup()
   cmdInit(&Serial);
   cmdAdd("???", helpCmd);  
   cmdAdd("SOL", solCmd);  
+  cmdAdd("ID", idCmd);
   
 //  tft.setTextColor(ST77XX_YELLOW);
 //  tft.setTextSize(3);
