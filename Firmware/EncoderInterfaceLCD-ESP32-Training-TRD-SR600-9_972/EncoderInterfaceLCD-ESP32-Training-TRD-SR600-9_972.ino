@@ -32,16 +32,20 @@
 //#define ZERO_OFFSET    // if this is defined, offset zero to 1/2 Max DAC to allow sending reverse speed through DAC
 //                          if used must also define SHOW_REVERSE
 
-#define UPDATE_USECS 20000  // don't print faster than this many micros
-#define SPEED_TIMEOUT 100000  // if we don't move in this many micros assume we are stopped and show 0.0 speed 
+#define UPDATE_USECS 100000  // don't print faster than this many micros
+#define SPEED_TIMEOUT 200000  // if we don't move in this many micros assume we are stopped and show 0.0 speed 
 
 #define MINON 1
 #define MAXON 100
 
 
-#define VERSION "20260225R"
+#define VERSION "20260302"
 
 // ===== VERSIONS ======
+
+// 20260302 scj
+// changed UPDATE_USECS and SPEED_TIMOUT for a 10Hz refresh rate
+// removed redundant definition of SPEED_TIMOUT
 
 // 20260225 sws
 // add ID command
@@ -142,8 +146,6 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 //#define MM_PER_COUNT 534000  // for TDR-SR1000 1000 counts, 170mm diameter// 787990  // 3171909  // actually 1/10^6mm per count since we divide by usecs
 
 #define DIST_PER_COUNT ((float)MM_PER_COUNT/1000000.0)   //(float)0.41095
- 
-#define SPEED_TIMEOUT 100000  // if we don't move in this many microseconds assume we are stopped
 
 static float runSpeed = 0;
 static float lastSpeed = 0;
