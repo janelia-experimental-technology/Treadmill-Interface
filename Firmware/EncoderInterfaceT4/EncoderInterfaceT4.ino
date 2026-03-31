@@ -21,15 +21,18 @@
 #define SHOW_ZERO      // if this is defined, show 0 speed if no movement in SPEED_TIMEOUT micros
 //#define CYLINDER_8IN   // if this is defined, will compile for 8" cyclinder, else standard belt 
 
-//#define ZERO_OFFSET    // if this is defined, offset zero to 1/2 Max DAC to allow sending reverse speed through DAC
+#define ZERO_OFFSET    // if this is defined, offset zero to 1/2 Max DAC to allow sending reverse speed through DAC
 //                          if used must also define SHOW_REVERSE
 
 #define UPDATE_USECS 20000  // don't print faster than this many micros
 #define SPEED_TIMEOUT 100000  // if we don't move in this many micros assume we are stopped and show 0.0 speed 
 
 
-#define VERSION "20240909"
+#define VERSION "20260331"
 // ===== VERSIONS ======
+
+// 20260331 sws
+// - implemement zero offset 
 
 // 20240909 sws
 // - from EncoderInterfaceT3, changes to use Teensy 4.0
@@ -196,7 +199,13 @@ void encoderBInt()
 
 void setDACspeed(float speed)
 {
+
+  #ifdef ZERO_OFFSET  
+    float dacval = ((speed/MAXSPEED * maxDACval) + maxDACval)/2; 
+  #else  
     float dacval = abs(speed)/MAXSPEED * maxDACval; 
+  #endif
+
     if( dacval < 0 ) dacval = 0;             
     if( dacval > maxDACval) dacval = maxDACval; 
 
@@ -234,6 +243,9 @@ void setup()
   #else
     attachInterrupt(encAPin, encoderInt, RISING); // check encoder every A pin rising edge
   #endif  
+
+  setDACspeed(0);
+
 }
 
 boolean moved = false;
@@ -244,6 +256,7 @@ boolean moved = false;
   if( Serial.available() )
   {
      int8_t charin = Serial.read();
+     while(Serial.available()); // clear buffer
      if ( charin == '?' )
      {
        Serial.print("Treadmill V:");
@@ -258,16 +271,26 @@ boolean moved = false;
      } 
      else if ( charin == 'c' )
      {
+       float speed;
+      #ifdef ZERO_OFFSET
+        Serial.print("Speed output calibrate, ");
+        Serial.print(-MAXSPEED);
+        Serial.print(" to ");
+        Serial.print(-MAXSPEED);
+        Serial.println(" mm/sec");
+        for( speed =-MAXSPEED; speed <= MAXSPEED; speed += MAXSPEED/5)
+      #else  
         Serial.print("Speed output calibrate, 0 to ");
         Serial.print(MAXSPEED);
         Serial.println(" mm/sec");
-        for( float speed = 0; speed <= MAXSPEED; speed += MAXSPEED/5)
+        for( speed = 0; speed <= MAXSPEED; speed += MAXSPEED/5)
+      #endif
         {
            setDACspeed(speed);
            Serial.println(speed);
            delay(5000);
         }  
-      //  setDACspeed(0);   
+        setDACspeed(0);   
      }
   }
   
@@ -299,9 +322,6 @@ boolean moved = false;
        lastDistance = cumDistance;
 
        setDACspeed(runSpeed);
-  
-
- 
      }
      
   }
