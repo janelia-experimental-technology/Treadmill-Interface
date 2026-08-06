@@ -10,3 +10,17 @@ The encoder voltage provided is 5 volts.
 PCB design done in Eagle
 Firmware design in Arduino with Teensy extensions
 Processor - Teensy 4.0
+
+
+**Opportunity:** Free to make for Non-Profit Research by downloading the design here. See included hardware license.
+
+Commercial licenses are also available, contact innovation@janelia.hhmi.org and reference this DOI.
+
+For inquiries, please contact [innovation@janelia.hhmi.org](mailto:innovation@janelia.hhmi.org) and reference: Janelia 2017-055
+
+To cite the designs, please cite this DOI: [https://doi.org/10.25378/janelia.33179270](https://doi.org/10.25378/janelia.33179270)
+
+**Related to:** https://doi.org/10.25378/janelia.24691311, item 2017-049
+
+**Other:** supersedes Flintbox ID: 2017-055
+
