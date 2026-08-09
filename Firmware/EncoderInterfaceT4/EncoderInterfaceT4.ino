@@ -123,6 +123,8 @@ volatile float distance = 0;
 volatile float deltaDistance = 0;
 volatile int8_t encoderCounts = 0;
 
+static uint64_t monoUsecs = 0;  // 64-bit monotonic microseconds
+
 #define FW 1
 #define BW -1
 
@@ -303,17 +305,19 @@ boolean moved = false;
   
   if( (moved) && ((newUsecs - lastUsecs) > UPDATE_USECS ) ) // are we at least past max update rate
   {
+    uint32_t usecs = (uint32_t)(newUsecs - lastUsecs);   // unsigned delta handles wrap
+    monoUsecs += usecs;
+    lastUsecs = newUsecs;
+    runSpeed = (1e6f * (cumDistance - lastDistance)) / (float)usecs;
+   
   #ifndef SHOW_REVERSE 
      if( (cumDistance - lastDistance) > 0 )
   #endif     
      { 
-       int32_t usecs = newUsecs - lastUsecs;        
-       lastUsecs = newUsecs;  
-       runSpeed = (1e6 * (cumDistance - lastDistance) ) / (float)usecs;
+       // Print monotonic time instead of raw micros() to avoid rollover
        #ifdef SHOW_MICROS     
-         Serial.print(newUsecs);   
+         Serial.print((unsigned long long)monoUsecs);   
          Serial.print(","); 
-         
        #endif     
        Serial.print(cumDistance);
        Serial.print(",");
@@ -329,12 +333,16 @@ boolean moved = false;
   else 
   {
      uint32_t zeroUsecs = micros();
-     if( (zeroUsecs - lastUsecs) > SPEED_TIMEOUT )
+     if( (uint32_t) (zeroUsecs - lastUsecs) > SPEED_TIMEOUT )
      {
+        uint32_t dz = (uint32_t)(zeroUsecs - lastUsecs);
+        monoUsecs += dz;
+        lastUsecs = zeroUsecs;
+      
        if( lastDistance != zeroDistance )
        {
          #ifdef SHOW_MICROS        
-           Serial.print(zeroUsecs);  
+           Serial.print((unsigned long long)monoUsecs); //print monotonic time
            Serial.print(",");           
          #endif         
          Serial.print(lastDistance);
